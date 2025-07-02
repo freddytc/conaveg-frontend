@@ -48,7 +48,7 @@ const InvoiceForm = ({ factura, proveedores, onSubmit, onCancel }) => {
         [name]: ''
       }));
     }
-    
+
     // Limpiar error general también
     if (errors.general) {
       setErrors(prev => ({
@@ -119,7 +119,7 @@ const InvoiceForm = ({ factura, proveedores, onSubmit, onCancel }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
@@ -136,13 +136,13 @@ const InvoiceForm = ({ factura, proveedores, onSubmit, onCancel }) => {
       await onSubmit(submitData);
     } catch (error) {
       console.error('Error capturado en formulario:', error);
-      
+
       // Limpiar errores previos
       setErrors({});
-      
+
       // Manejar errores específicos
       const errorMessage = error.message || '';
-      
+
       if (errorMessage.includes('nroFactura') && errorMessage.includes('unique')) {
         setErrors({
           nroFactura: 'Ya existe una factura con este número'
@@ -418,7 +418,7 @@ const InvoiceForm = ({ factura, proveedores, onSubmit, onCancel }) => {
                       </label>
                       <div className="input-group">
                         <div className="input-group-prepend">
-                          <span className="input-group-text">
+                          <span className="input-group-text" style={{ backgroundColor: '#1e1e2e', borderColor: '#1e1e2e', color: '#fff' }}>
                             {formData.moneda === 'USD' ? '$' : formData.moneda === 'EUR' ? '€' : 'S/'}
                           </span>
                         </div>
@@ -493,7 +493,7 @@ const InvoiceForm = ({ factura, proveedores, onSubmit, onCancel }) => {
                   {/* Resumen de la factura */}
                   {formData.nroFactura && formData.montoTotal && (
                     <div className="col-md-12 mt-3">
-                      <div className="alert alert-info">
+                      <div className="alert alert-info" style={{ backgroundColor: '#1e1e2e', borderColor: '#1e1e2e', color: '#fff' }}>
                         <i className="fas fa-info-circle mr-2"></i>
                         <strong>Resumen:</strong> {formData.tipoDocumento} {formData.nroFactura} por{' '}
                         {formData.moneda === 'USD' ? '$' : formData.moneda === 'EUR' ? '€' : 'S/'}{formData.montoTotal}{' '}

@@ -10,7 +10,7 @@ const InventoryForm = ({ item, onSubmit, onCancel }) => {
     modelo: '',
     nroSerie: '',
     stock: '0',
-    unidadMedida: 'Unidad', 
+    unidadMedida: 'Unidad',
     fechaAquisicion: '',
     estadoConservacion: 'Bueno'
   });
@@ -26,11 +26,11 @@ const InventoryForm = ({ item, onSubmit, onCancel }) => {
       try {
         setLoadingCategorias(true);
         const response = await fetch('http://localhost:8080/conaveg/api/categorias-inventario');
-        
+
         if (!response.ok) {
           throw new Error('Error al obtener las categorías');
         }
-        
+
         const data = await response.json();
         setCategorias(data);
       } catch (error) {
@@ -77,7 +77,7 @@ const InventoryForm = ({ item, onSubmit, onCancel }) => {
         [name]: ''
       }));
     }
-    
+
     // Limpiar error general también
     if (errors.general) {
       setErrors(prev => ({
@@ -130,7 +130,7 @@ const InventoryForm = ({ item, onSubmit, onCancel }) => {
       const fechaAquisicion = new Date(formData.fechaAquisicion);
       const hoy = new Date();
       hoy.setHours(23, 59, 59, 999); // Hasta el final del día
-      
+
       if (fechaAquisicion > hoy) {
         newErrors.fechaAquisicion = 'La fecha de adquisición no puede ser futura';
       }
@@ -146,7 +146,7 @@ const InventoryForm = ({ item, onSubmit, onCancel }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
@@ -157,13 +157,13 @@ const InventoryForm = ({ item, onSubmit, onCancel }) => {
     } catch (error) {
       console.error('Error capturado en formulario:', error);
       console.error('Mensaje del error:', error.message);
-      
+
       // Limpiar errores previos
       setErrors({});
-      
+
       // Manejar errores específicos
       const errorMessage = error.message || '';
-      
+
       if (errorMessage === 'DUPLICATE_CODE') {
         setErrors({
           codigo: 'Ya existe un producto con este código en el sistema'
@@ -177,14 +177,14 @@ const InventoryForm = ({ item, onSubmit, onCancel }) => {
           general: 'Ya existe un producto con estos datos en el sistema'
         });
       } else if (errorMessage.includes('inventario_codigo_unique') ||
-                 errorMessage.includes('codigo_unique') ||
-                 (errorMessage.includes('Duplicate entry') && errorMessage.includes('codigo'))) {
+        errorMessage.includes('codigo_unique') ||
+        (errorMessage.includes('Duplicate entry') && errorMessage.includes('codigo'))) {
         setErrors({
           codigo: 'Ya existe un producto con este código en el sistema'
         });
       } else if (errorMessage.includes('inventario_nro_serie_unique') ||
-                 errorMessage.includes('nro_serie_unique') ||
-                 (errorMessage.includes('Duplicate entry') && errorMessage.includes('nro_serie'))) {
+        errorMessage.includes('nro_serie_unique') ||
+        (errorMessage.includes('Duplicate entry') && errorMessage.includes('nro_serie'))) {
         setErrors({
           nroSerie: 'Ya existe un producto con este número de serie en el sistema'
         });
@@ -206,7 +206,7 @@ const InventoryForm = ({ item, onSubmit, onCancel }) => {
       const marcaPart = formData.marca.substring(0, 3).toUpperCase();
       const randomPart = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
       const generatedCode = `${nombrePart}${marcaPart}${randomPart}`;
-      
+
       setFormData(prev => ({
         ...prev,
         codigo: generatedCode
@@ -329,26 +329,12 @@ const InventoryForm = ({ item, onSubmit, onCancel }) => {
                           name="codigo"
                           value={formData.codigo}
                           onChange={handleChange}
-                          placeholder="Ej: ABC123"
+                          placeholder="Ej: INV-0001"
                         />
-                        <div className="input-group-append">
-                          <button
-                            type="button"
-                            className="btn btn-outline-secondary"
-                            onClick={generateCode}
-                            title="Generar código automático"
-                            disabled={!formData.nombre || !formData.marca}
-                          >
-                            <i className="fas fa-magic"></i>
-                          </button>
-                        </div>
                       </div>
                       {errors.codigo && (
                         <div className="invalid-feedback">{errors.codigo}</div>
                       )}
-                      <small className="form-text text-muted">
-                        Use el botón para generar automáticamente (necesita nombre y marca)
-                      </small>
                     </div>
                   </div>
 
@@ -413,7 +399,6 @@ const InventoryForm = ({ item, onSubmit, onCancel }) => {
                         name="marca"
                         value={formData.marca}
                         onChange={handleChange}
-                        placeholder="Ej: Samsung, HP, Caterpillar"
                       />
                       {errors.marca && (
                         <div className="invalid-feedback">{errors.marca}</div>
@@ -433,7 +418,6 @@ const InventoryForm = ({ item, onSubmit, onCancel }) => {
                         name="modelo"
                         value={formData.modelo}
                         onChange={handleChange}
-                        placeholder="Ej: Galaxy S21, Pavilion 15"
                       />
                     </div>
                   </div>
@@ -450,7 +434,6 @@ const InventoryForm = ({ item, onSubmit, onCancel }) => {
                         name="nroSerie"
                         value={formData.nroSerie}
                         onChange={handleChange}
-                        placeholder="Número de serie único"
                       />
                       {errors.nroSerie && (
                         <div className="invalid-feedback">{errors.nroSerie}</div>
@@ -505,9 +488,6 @@ const InventoryForm = ({ item, onSubmit, onCancel }) => {
                       {errors.unidadMedida && (
                         <div className="invalid-feedback">{errors.unidadMedida}</div>
                       )}
-                      <small className="form-text text-muted">
-                        Ejemplos: UNIDAD, PIEZA, KG, GRAMOS, LITROS, METROS, CAJA, etc.
-                      </small>
                     </div>
                   </div>
 
@@ -543,21 +523,17 @@ const InventoryForm = ({ item, onSubmit, onCancel }) => {
                         name="estadoConservacion"
                         value={formData.estadoConservacion}
                         onChange={handleChange}
-                        placeholder="Ej: EXCELENTE, BUENO, REGULAR, MALO"
                       />
                       {errors.estadoConservacion && (
                         <div className="invalid-feedback">{errors.estadoConservacion}</div>
                       )}
-                      <small className="form-text text-muted">
-                        Ejemplos: EXCELENTE, BUENO, REGULAR, MALO, EN REPARACIÓN
-                      </small>
                     </div>
                   </div>
 
                   {/* Información adicional sobre valor del inventario */}
                   {formData.stock && formData.stock > 0 && (
                     <div className="col-md-12">
-                      <div className="alert alert-info">
+                      <div className="alert alert-info" style={{ backgroundColor: '#1e1e2e', borderColor: '#1e1e2e', color: '#fff' }}>
                         <i className="fas fa-info-circle mr-2"></i>
                         <strong>Stock total:</strong> {formData.stock} {formData.unidadMedida ? formData.unidadMedida.toLowerCase() : 'unidades'}
                         {formData.categoriaId && categorias.find(c => c.id == formData.categoriaId) && (

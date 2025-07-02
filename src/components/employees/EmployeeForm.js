@@ -312,7 +312,7 @@ const EmployeeForm = ({ employee, onSubmit, onCancel }) => {
                         name="nroDocumento"
                         value={formData.nroDocumento}
                         onChange={handleChange}
-                        placeholder="Ej: 12345678A, DNI123456"
+                        placeholder="Ej: 123456789"
                       />
                       {errors.nroDocumento && (
                         <div className="invalid-feedback">{errors.nroDocumento}</div>
@@ -335,7 +335,7 @@ const EmployeeForm = ({ employee, onSubmit, onCancel }) => {
                         name="telefono"
                         value={formData.telefono}
                         onChange={handleChange}
-                        placeholder="+34 123 456 789"
+                        placeholder="987654321"
                       />
                       {errors.telefono && (
                         <div className="invalid-feedback">{errors.telefono}</div>

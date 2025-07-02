@@ -235,14 +235,14 @@ const ProveedorForm = ({ proveedor, onSubmit, onCancel }) => {
                         name="ruc"
                         value={formData.ruc}
                         onChange={handleRucChange}
-                        placeholder="ABC123456789 o 20123456789"
+                        placeholder="20123456789"
                         maxLength="15"
                       />
                       {errors.ruc && (
                         <div className="invalid-feedback">{errors.ruc}</div>
                       )}
                       <small className="form-text text-muted">
-                        Ingrese el RUC (8-15 caracteres alfanuméricos)
+                        Ingrese el RUC (8-15 caracteres)
                       </small>
                     </div>
                   </div>
@@ -294,7 +294,7 @@ const ProveedorForm = ({ proveedor, onSubmit, onCancel }) => {
                         <div className="invalid-feedback">{errors.direccion}</div>
                       )}
                       <small className="form-text text-muted">
-                        Incluya calle, número, distrito, ciudad y departamento
+                        Incluya calle, número, ciudad
                       </small>
                     </div>
                   </div>
@@ -311,7 +311,7 @@ const ProveedorForm = ({ proveedor, onSubmit, onCancel }) => {
                         name="telefono"
                         value={formData.telefono}
                         onChange={handleChange}
-                        placeholder="(01) 123-4567 o 987-654-321"
+                        placeholder="Ej: (01) 123-4567 o 987-654-321"
                       />
                       {errors.telefono && (
                         <div className="invalid-feedback">{errors.telefono}</div>

@@ -34,8 +34,9 @@ const Header = () => {
           background: 'linear-gradient(135deg, #1e1e2e 0%, #2a2d47 100%)'
         }}
       >
+        <h1 className="login-title">Conaveg</h1>
         <a href="/" className="logo">
-          <img src="/assets/img/logo.svg" alt="navbar brand" className="navbar-brand" />
+          <img/>
         </a>
         <button className="navbar-toggler sidenav-toggler ml-auto" type="button">
           <span className="navbar-toggler-icon">

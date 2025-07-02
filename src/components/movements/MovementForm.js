@@ -785,28 +785,6 @@ const MovementForm = ({ movement, onSubmit, onCancel }) => {
               )}
             </div>
           </div>
-
-          {/* Card con ayuda sobre tipos de movimiento */}
-          <div className="card">
-            <div className="card-header">
-              <div className="card-title">
-                <i className="fas fa-question-circle mr-2"></i>
-                Tipos de Movimiento
-              </div>
-            </div>
-            <div className="card-body">
-              <div className="list-group list-group-flush">
-                {tiposMovimiento.map(tipo => (
-                  <div key={tipo.value} className="list-group-item border-0 px-0 py-2">
-                    <div className="d-flex align-items-center">
-                      <i className={`${tipo.icon} text-${tipo.color} mr-2`}></i>
-                      <small className="font-weight-bold">{tipo.label}</small>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>

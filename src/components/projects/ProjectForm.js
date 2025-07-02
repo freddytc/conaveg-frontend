@@ -7,7 +7,7 @@ const ProjectForm = ({ project, onSubmit, onCancel }) => {
     ubicacion: '',
     fechaInicio: '',
     fechaFin: '',
-    estadoProyecto: 'PLANIFICADO'
+    estadoProyecto: 'En ejecución'
   });
 
   const [errors, setErrors] = useState({});
@@ -40,7 +40,7 @@ const ProjectForm = ({ project, onSubmit, onCancel }) => {
         [name]: ''
       }));
     }
-    
+
     // Limpiar error general también
     if (errors.general) {
       setErrors(prev => ({
@@ -80,7 +80,7 @@ const ProjectForm = ({ project, onSubmit, onCancel }) => {
       // Validar que la fecha fin sea posterior a la fecha inicio
       const fechaInicio = new Date(formData.fechaInicio);
       const fechaFin = new Date(formData.fechaFin);
-      
+
       if (fechaFin <= fechaInicio) {
         newErrors.fechaFin = 'La fecha de fin debe ser posterior a la fecha de inicio';
       }
@@ -96,7 +96,7 @@ const ProjectForm = ({ project, onSubmit, onCancel }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
@@ -107,13 +107,13 @@ const ProjectForm = ({ project, onSubmit, onCancel }) => {
     } catch (error) {
       console.error('Error capturado en formulario:', error);
       console.error('Mensaje del error:', error.message);
-      
+
       // Limpiar errores previos
       setErrors({});
-      
+
       // Manejar errores específicos
       const errorMessage = error.message || '';
-      
+
       if (errorMessage === 'DUPLICATE_NAME') {
         setErrors({
           nombre: 'Ya existe un proyecto con este nombre en el sistema'
@@ -123,8 +123,8 @@ const ProjectForm = ({ project, onSubmit, onCancel }) => {
           general: 'Ya existe un proyecto con estos datos en el sistema'
         });
       } else if (errorMessage.includes('proyectos_nombre_unique') ||
-                 errorMessage.includes('nombre_unique') ||
-                 (errorMessage.includes('Duplicate entry') && errorMessage.includes('nombre'))) {
+        errorMessage.includes('nombre_unique') ||
+        (errorMessage.includes('Duplicate entry') && errorMessage.includes('nombre'))) {
         setErrors({
           nombre: 'Ya existe un proyecto con este nombre en el sistema'
         });
@@ -260,7 +260,7 @@ const ProjectForm = ({ project, onSubmit, onCancel }) => {
                         name="descripcion"
                         value={formData.descripcion}
                         onChange={handleChange}
-                        placeholder="Ingrese una descripción detallada del proyecto"
+                        placeholder="Ingrese una descripción del proyecto"
                         rows="4"
                       />
                       {errors.descripcion && (
@@ -340,7 +340,7 @@ const ProjectForm = ({ project, onSubmit, onCancel }) => {
                   {/* Información adicional sobre duración */}
                   {formData.fechaInicio && formData.fechaFin && (
                     <div className="col-md-12">
-                      <div className="alert alert-info">
+                      <div className="alert alert-info" style={{ backgroundColor: '#1e1e2e', borderColor: '#1e1e2e', color: '#fff' }}>
                         <i className="fas fa-info-circle mr-2"></i>
                         <strong>Duración del proyecto:</strong> {
                           Math.ceil((new Date(formData.fechaFin) - new Date(formData.fechaInicio)) / (1000 * 60 * 60 * 24))

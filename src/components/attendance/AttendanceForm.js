@@ -365,8 +365,6 @@ const AttendanceForm = ({ asistencia, empleados, onSubmit, onCancel }) => {
                       >
                         <option value="Entrada">Entrada</option>
                         <option value="Salida">Salida</option>
-                        <option value="Pausa">Pausa</option>
-                        <option value="Regreso">Regreso de Pausa</option>
                         <option value="Tardanza">Entrada con Tardanza</option>
                         <option value="Salida Anticipada">Salida Anticipada</option>
                       </select>

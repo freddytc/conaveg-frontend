@@ -122,21 +122,8 @@ const AssignmentForm = ({ assignment, employees, projects, onSubmit, onCancel })
         fechaFinAsignacion: formData.fechaFinAsignacion || null,
         rol: formData.rol || null
       };
-
-      // 🔍 DEBUG: Ver exactamente qué se está enviando
-      console.log('🚀 Datos que se van a enviar al backend:', JSON.stringify(submitData, null, 2));
-      console.log('📝 fechaFinAsignacion:', submitData.fechaFinAsignacion);
-      console.log('👤 rol:', submitData.rol);
-      console.log('📅 fechaAsignacion:', submitData.fechaAsignacion);
-
       const response = await onSubmit(submitData);
-
-      // 🔍 DEBUG: Ver la respuesta del backend
-      console.log('✅ Respuesta del backend:', JSON.stringify(response, null, 2));
-
     } catch (error) {
-      console.error('❌ Error en formulario:', error);
-      console.error('📄 Error completo:', JSON.stringify(error, null, 2));
       setErrors({ submit: error.message });
     } finally {
       setLoading(false);
@@ -321,9 +308,6 @@ const AssignmentForm = ({ assignment, employees, projects, onSubmit, onCancel })
                           {errors.fechaFinAsignacion}
                         </div>
                       )}
-                      <small className="form-text text-muted">
-                        Opcional - Dejar vacío si está activa
-                      </small>
                     </div>
                   </div>
 
@@ -340,11 +324,7 @@ const AssignmentForm = ({ assignment, employees, projects, onSubmit, onCancel })
                         value={formData.rol}
                         onChange={handleChange}
                         disabled={loading}
-                        placeholder="Ej: Desarrollador, Tester, Analista..."
                       />
-                      <small className="form-text text-muted">
-                        Opcional - Especificar el rol en el proyecto
-                      </small>
                     </div>
                   </div>
                 </div>
@@ -450,16 +430,6 @@ const AssignmentForm = ({ assignment, employees, projects, onSubmit, onCancel })
                       </span>
                     </div>
                   )}
-
-                  <div className="alert alert-info mt-3">
-                    <small>
-                      <i className="fas fa-info-circle mr-1"></i>
-                      {formData.fechaFinAsignacion ?
-                        'Esta asignación tiene fecha de finalización definida.' :
-                        'Esta asignación permanecerá activa hasta que se defina una fecha de finalización.'
-                      }
-                    </small>
-                  </div>
                 </>
               ) : (
                 <div className="text-center text-muted">
