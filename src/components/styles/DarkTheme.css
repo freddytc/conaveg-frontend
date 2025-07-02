@@ -1,0 +1,103 @@
+/* Tema oscuro global */
+html, body {
+  background: linear-gradient(135deg, #1e1e2e 0%, #2a2d47 100%) !important;
+  color: #fff !important;
+}
+
+/* Cards */
+.card {
+  background: #1e1e2e !important;
+  color: #fff !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Tablas */
+.table {
+  background: #1e1e2e !important;
+  color: #fff !important;
+}
+
+.table th {
+  background: rgba(13, 25, 155, 0.3) !important;
+  color: #fff !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.table td {
+  color: #fff !important;
+  border-color: #1e1e2e !important;
+}
+
+/* Formularios */
+.form-control {
+  background: #1e1e2e!important;
+  color: #fff !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+.form-control:focus {
+  background: #1e1e2e !important;
+  color: #fff !important;
+  border-color: #1a73e8 !important;
+  box-shadow: 0 0 0 0.2rem rgba(26, 115, 232, 0.25) !important;
+}
+
+/* Select options */
+select.form-control {
+  background: #1e1e2e !important;
+  color: #fff !important;
+}
+
+select.form-control option {
+  background: #1e1e2e !important;
+  color: #fff !important;
+}
+
+/* Dropdown menus */
+.dropdown-menu {
+  background: #2a2d47 !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.dropdown-item {
+  color: #fff !important;
+  background: transparent !important;
+}
+
+.dropdown-item:hover {
+  background: rgba(26, 115, 232, 0.3) !important;
+  color: #fff !important;
+}
+
+/* Modales */
+.modal-content {
+  background: linear-gradient(135deg, #1e1e2e 0%, #2a2d47 100%) !important;
+  color: #fff !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Texto general */
+h1, h2, h3, h4, h5, h6, p, span, div, label {
+  color: #fff !important;
+}
+
+.text-muted {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+/* Input placeholder */
+.form-control::placeholder {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Botones de paginación */
+.pagination .page-link {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #fff !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.pagination .page-item.active .page-link {
+  background:rgb(18, 94, 193) !important;
+  border-color: #1a73e8 !important;
+}
