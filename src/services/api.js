@@ -3,11 +3,8 @@ const API_BASE_URL = 'http://localhost:8080/conaveg/api';
 const api = {
   async request(endpoint, options = {}) {
     const url = `${API_BASE_URL}${endpoint}`;
-    
-    // Obtener token del localStorage
     const token = localStorage.getItem('token');
     
-    // Configuración por defecto
     const config = {
       headers: {
         'Content-Type': 'application/json',
@@ -16,44 +13,40 @@ const api = {
       ...options,
     };
 
-    // Agregar token de autorización si existe y no es un token mock
+    // Para FormData, eliminar Content-Type
+    if (config.body instanceof FormData) {
+      delete config.headers['Content-Type'];
+    }
+
+    // Agregar token de autorización
     if (token && !token.startsWith('mock-jwt-token')) {
       config.headers.Authorization = `Bearer ${token}`;
     }
 
     try {
-      console.log('API Request:', {
-        method: config.method || 'GET',
-        url,
-        headers: config.headers,
-        body: config.body
-      });
-
       const response = await fetch(url, config);
-      
-      console.log('API Response:', {
-        status: response.status,
-        statusText: response.statusText,
-        url: response.url
-      });
 
       if (!response.ok) {
-        // Manejar diferentes tipos de errores HTTP
+        // Manejar errores
         let errorMessage = `HTTP error! status: ${response.status}`;
         
         try {
           const errorData = await response.json();
           errorMessage = errorData.message || errorData.error || errorMessage;
-        } catch (e) {
-          // Si no se puede parsear el JSON del error, usar mensaje por defecto
+        } catch (jsonError) {
+          try {
+            const errorText = await response.text();
+            errorMessage = errorText || errorMessage;
+          } catch (textError) {
+            // Usar mensaje por defecto
+          }
         }
         
-        // Casos específicos de error
+        // Casos específicos
         if (response.status === 401) {
-          // Token expirado o inválido
           localStorage.removeItem('token');
           localStorage.removeItem('user');
-          window.location.reload(); // Redireccionar al login
+          window.location.reload();
           return;
         }
         
@@ -68,19 +61,76 @@ const api = {
         throw new Error(errorMessage);
       }
 
-      // Si la respuesta es exitosa pero vacía (204 No Content)
+      // Respuesta vacía
       if (response.status === 204) {
         return null;
       }
 
-      const data = await response.json();
-      console.log('API Data:', data);
-      return data;
+      // Respuesta blob (archivos)
+      if (options.responseType === 'blob') {
+        return await response.blob();
+      }
+
+      // Respuesta JSON
+      return await response.json();
       
     } catch (error) {
       console.error('API Error:', error);
       throw error;
     }
+  },
+
+  // Upload con query parameters (como Swagger)
+  uploadWithQueryParams(baseUrl, params, file, token) {
+    return new Promise((resolve, reject) => {
+      // Construir URL con query parameters
+      const url = new URL(baseUrl);
+      Object.keys(params).forEach(key => {
+        if (params[key] !== null && params[key] !== undefined) {
+          url.searchParams.append(key, params[key]);
+        }
+      });
+      
+      const xhr = new XMLHttpRequest();
+      
+      xhr.onload = function() {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try {
+            const response = JSON.parse(xhr.responseText);
+            resolve(response);
+          } catch (e) {
+            resolve(xhr.responseText);
+          }
+        } else {
+          let errorMessage = `HTTP error! status: ${xhr.status}`;
+          try {
+            const errorData = JSON.parse(xhr.responseText);
+            errorMessage = errorData.message || errorData.error || errorMessage;
+          } catch (e) {
+            errorMessage = xhr.responseText || errorMessage;
+          }
+          reject(new Error(errorMessage));
+        }
+      };
+      
+      xhr.onerror = () => reject(new Error('Error de red'));
+      xhr.onabort = () => reject(new Error('Upload cancelado'));
+      
+      // Configurar request
+      xhr.open('POST', url.toString(), true);
+      xhr.setRequestHeader('accept', '*/*');
+      
+      // Agregar Authorization si existe
+      if (token && !token.startsWith('mock-jwt-token')) {
+        xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+      }
+      
+      // FormData solo con el archivo
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      xhr.send(formData);
+    });
   },
 
   // Métodos HTTP
@@ -92,7 +142,7 @@ const api = {
     return this.request(endpoint, {
       ...options,
       method: 'POST',
-      body: JSON.stringify(body),
+      body: body instanceof FormData ? body : JSON.stringify(body),
     });
   },
 
@@ -100,7 +150,7 @@ const api = {
     return this.request(endpoint, {
       ...options,
       method: 'PUT',
-      body: JSON.stringify(body),
+      body: body instanceof FormData ? body : JSON.stringify(body),
     });
   },
 

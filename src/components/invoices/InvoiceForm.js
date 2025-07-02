@@ -10,10 +10,11 @@ const InvoiceForm = ({ factura, proveedores, onSubmit, onCancel }) => {
     montoTotal: '',
     moneda: 'PEN',
     estadoFactura: 'Pendiente',
-    descripcion: '',
-    observaciones: ''
+    descripcion: ''
   });
 
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [uploadWithFile, setUploadWithFile] = useState(false);
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
@@ -28,89 +29,99 @@ const InvoiceForm = ({ factura, proveedores, onSubmit, onCancel }) => {
         montoTotal: factura.montoTotal || '',
         moneda: factura.moneda || 'PEN',
         estadoFactura: factura.estadoFactura || 'Pendiente',
-        descripcion: factura.descripcion || '',
-        observaciones: factura.observaciones || ''
+        descripcion: factura.descripcion || ''
       });
     }
   }, [factura]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData(prev => ({ ...prev, [name]: value }));
 
-    // Limpiar error cuando el usuario empiece a escribir
     if (errors[name]) {
-      setErrors(prev => ({
-        ...prev,
-        [name]: ''
-      }));
+      setErrors(prev => ({ ...prev, [name]: '' }));
     }
-
-    // Limpiar error general también
     if (errors.general) {
-      setErrors(prev => ({
-        ...prev,
-        general: ''
-      }));
+      setErrors(prev => ({ ...prev, general: '' }));
     }
   };
 
   const handleNumberChange = (e) => {
     const { name, value } = e.target;
-    // Solo permitir números y punto decimal
     const numericValue = value.replace(/[^0-9.]/g, '');
-    setFormData(prev => ({
-      ...prev,
-      [name]: numericValue
-    }));
+    setFormData(prev => ({ ...prev, [name]: numericValue }));
 
-    // Limpiar error
     if (errors[name]) {
-      setErrors(prev => ({
-        ...prev,
-        [name]: ''
-      }));
+      setErrors(prev => ({ ...prev, [name]: '' }));
     }
   };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.type !== 'application/pdf') {
+        setErrors(prev => ({ ...prev, file: 'Solo se permiten archivos PDF' }));
+        setSelectedFile(null);
+        return;
+      }
+
+      const maxSize = 10 * 1024 * 1024; // 10MB
+      if (file.size > maxSize) {
+        setErrors(prev => ({ ...prev, file: 'El archivo no puede superar los 10MB' }));
+        setSelectedFile(null);
+        return;
+      }
+
+      setSelectedFile(file);
+      setErrors(prev => ({ ...prev, file: '' }));
+    }
+  };
+
+  const handleRemoveFile = () => {
+    setSelectedFile(null);
+    setErrors(prev => ({ ...prev, file: '' }));
+    // Limpiar el input file
+    const fileInput = document.getElementById('file');
+    if (fileInput) {
+      fileInput.value = '';
+    }
+  };
+
 
   const validateForm = () => {
     const newErrors = {};
 
-    // Validación de número de factura
     if (!formData.nroFactura.trim()) {
       newErrors.nroFactura = 'El número de factura es obligatorio';
     } else if (formData.nroFactura.trim().length < 3) {
       newErrors.nroFactura = 'El número de factura debe tener al menos 3 caracteres';
     }
 
-    // Validación de proveedor
     if (!formData.proveedorId) {
       newErrors.proveedorId = 'Debe seleccionar un proveedor';
     }
 
-    // Validación de fecha de emisión
     if (!formData.fechaEmision) {
       newErrors.fechaEmision = 'La fecha de emisión es obligatoria';
     }
 
-    // Validación de fecha de vencimiento
     if (!formData.fechaVencimiento) {
       newErrors.fechaVencimiento = 'La fecha de vencimiento es obligatoria';
     } else if (formData.fechaEmision && new Date(formData.fechaVencimiento) < new Date(formData.fechaEmision)) {
       newErrors.fechaVencimiento = 'La fecha de vencimiento debe ser posterior a la fecha de emisión';
     }
 
-    // Validación de monto
     if (!formData.montoTotal || parseFloat(formData.montoTotal) <= 0) {
       newErrors.montoTotal = 'El monto debe ser mayor a 0';
     }
 
-    // Validación de descripción
     if (!formData.descripcion.trim()) {
       newErrors.descripcion = 'La descripción es obligatoria';
+    }
+
+    // Solo validar archivo si es nueva factura Y se eligió subir archivo
+    if (!factura && uploadWithFile && !selectedFile) {
+      newErrors.file = 'Debe seleccionar un archivo PDF';
     }
 
     setErrors(newErrors);
@@ -126,36 +137,41 @@ const InvoiceForm = ({ factura, proveedores, onSubmit, onCancel }) => {
 
     setLoading(true);
     try {
-      // Preparar datos para envío
-      const submitData = {
-        ...formData,
-        proveedorId: parseInt(formData.proveedorId),
-        montoTotal: parseFloat(formData.montoTotal)
-      };
+      // Si es nueva factura Y se eligió subir archivo
+      if (!factura && uploadWithFile && selectedFile) {
+        const formDataToSend = new FormData();
 
-      await onSubmit(submitData);
+        formDataToSend.append('file', selectedFile);
+        formDataToSend.append('proveedorId', formData.proveedorId.toString());
+        formDataToSend.append('usuarioId', '1');
+        formDataToSend.append('nroFactura', formData.nroFactura.trim());
+        formDataToSend.append('tipoDocumento', formData.tipoDocumento);
+        formDataToSend.append('fechaEmision', formData.fechaEmision);
+        formDataToSend.append('fechaVencimiento', formData.fechaVencimiento);
+        formDataToSend.append('montoTotal', Math.round(parseFloat(formData.montoTotal) * 100).toString());
+        formDataToSend.append('moneda', formData.moneda);
+        formDataToSend.append('descripcion', formData.descripcion.trim());
+        formDataToSend.append('estadoFactura', formData.estadoFactura);
+
+        await onSubmit(formDataToSend, true);
+      } else {
+        // Factura sin archivo (nueva o edición)
+        const submitData = {
+          ...formData,
+          proveedorId: parseInt(formData.proveedorId),
+          montoTotal: parseFloat(formData.montoTotal)
+        };
+
+        await onSubmit(submitData, false);
+      }
     } catch (error) {
-      console.error('Error capturado en formulario:', error);
-
-      // Limpiar errores previos
       setErrors({});
 
-      // Manejar errores específicos
       const errorMessage = error.message || '';
-
-      if (errorMessage.includes('nroFactura') && errorMessage.includes('unique')) {
-        setErrors({
-          nroFactura: 'Ya existe una factura con este número'
-        });
-      } else if (errorMessage.includes('Duplicate entry') && errorMessage.includes('nro_factura')) {
-        setErrors({
-          nroFactura: 'Ya existe una factura con este número'
-        });
+      if (errorMessage.includes('nroFactura') || errorMessage.includes('Duplicate entry')) {
+        setErrors({ nroFactura: 'Ya existe una factura con este número' });
       } else {
-        // Error genérico
-        setErrors({
-          general: 'Ocurrió un error al procesar la solicitud. Verifique que todos los datos sean correctos.'
-        });
+        setErrors({ general: 'Ocurrió un error al procesar la solicitud.' });
       }
     } finally {
       setLoading(false);
@@ -224,6 +240,75 @@ const InvoiceForm = ({ factura, proveedores, onSubmit, onCancel }) => {
                       <div className="alert alert-danger">
                         <i className="fas fa-exclamation-triangle mr-2"></i>
                         {errors.general}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Sección de archivo - SOLO para nuevas facturas */}
+                  {!factura && (
+                    <div className="col-md-12 mb-3">
+                      <div className="form-group">
+                        <div className="d-flex align-items-center mb-2">
+                          <div className="form-check">
+                            <input
+                              className="form-check-input"
+                              type="checkbox"
+                              id="uploadWithFile"
+                              checked={uploadWithFile}
+                              onChange={(e) => setUploadWithFile(e.target.checked)}
+                            />
+                            <label className="form-check-label" htmlFor="uploadWithFile">
+                              <i className="fas fa-paperclip mr-1"></i>
+                              Adjuntar archivo PDF
+                            </label>
+                          </div>
+                          {uploadWithFile && (
+                            <div className="mt-3">
+                              <div className="form-group">
+                                <label htmlFor="file">
+                                  Seleccionar archivo PDF <span className="text-danger">*</span>
+                                </label>
+                                <div className="d-flex align-items-center">
+                                  <input
+                                    type="file"
+                                    className={`form-control-file flex-grow-1 ${errors.file ? 'is-invalid' : ''}`}
+                                    id="file"
+                                    accept=".pdf"
+                                    onChange={handleFileChange}
+                                  />
+                                  {selectedFile && (
+                                    <button
+                                      type="button"
+                                      className="btn btn-sm btn-danger ml-2"
+                                      onClick={handleRemoveFile}
+                                      title="Quitar archivo"
+                                    >
+                                      <i className="fas fa-times text-white"></i>
+                                    </button>
+                                  )}
+                                </div>
+                                {errors.file && (
+                                  <div className="invalid-feedback d-block">{errors.file}</div>
+                                )}
+                                <small className="form-text text-muted">
+                                  Solo archivos PDF, máximo 10MB
+                                </small>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Mostrar archivo existente - SOLO para facturas en edición */}
+                  {factura && factura.nombreArchivo && (
+                    <div className="col-md-12 mb-4">
+                      <div className="alert alert-info">
+                        <i className="fas fa-file-pdf mr-2"></i>
+                        <strong>Archivo adjunto:</strong> {factura.nombreArchivo}
+                        <small className="d-block mt-1 text-muted">
+                        </small>
                       </div>
                     </div>
                   )}
@@ -303,7 +388,7 @@ const InvoiceForm = ({ factura, proveedores, onSubmit, onCancel }) => {
                     </div>
                   </div>
 
-                  {/* Información del Proveedor */}
+                  {/* Proveedor */}
                   <div className="col-md-12 mt-4">
                     <h5 className="mb-3">
                       <i className="fas fa-truck mr-2"></i>
@@ -342,7 +427,7 @@ const InvoiceForm = ({ factura, proveedores, onSubmit, onCancel }) => {
                     </div>
                   </div>
 
-                  {/* Información de Fechas y Montos */}
+                  {/* Fechas y Montos */}
                   <div className="col-md-12 mt-4">
                     <h5 className="mb-3">
                       <i className="fas fa-calendar-alt mr-2"></i>
@@ -418,7 +503,7 @@ const InvoiceForm = ({ factura, proveedores, onSubmit, onCancel }) => {
                       </label>
                       <div className="input-group">
                         <div className="input-group-prepend">
-                          <span className="input-group-text" style={{ backgroundColor: '#1e1e2e', borderColor: '#1e1e2e', color: '#fff' }}>
+                          <span className="input-group-text">
                             {formData.moneda === 'USD' ? '$' : formData.moneda === 'EUR' ? '€' : 'S/'}
                           </span>
                         </div>
@@ -441,11 +526,11 @@ const InvoiceForm = ({ factura, proveedores, onSubmit, onCancel }) => {
                     </div>
                   </div>
 
-                  {/* Descripción y Observaciones */}
+                  {/* Descripción */}
                   <div className="col-md-12 mt-4">
                     <h5 className="mb-3">
                       <i className="fas fa-align-left mr-2"></i>
-                      Descripción y Observaciones
+                      Descripción
                     </h5>
                     <hr />
                   </div>
@@ -470,40 +555,23 @@ const InvoiceForm = ({ factura, proveedores, onSubmit, onCancel }) => {
                     </div>
                   </div>
 
-                  <div className="col-md-12">
-                    <div className="form-group">
-                      <label htmlFor="observaciones">
-                        Observaciones
-                      </label>
-                      <textarea
-                        className="form-control"
-                        id="observaciones"
-                        name="observaciones"
-                        value={formData.observaciones}
-                        onChange={handleChange}
-                        placeholder="Observaciones adicionales (opcional)"
-                        rows="2"
-                      />
-                      <small className="form-text text-muted">
-                        Campo opcional para notas adicionales
-                      </small>
-                    </div>
-                  </div>
-
-                  {/* Resumen de la factura */}
+                  {/* Resumen */}
                   {formData.nroFactura && formData.montoTotal && (
                     <div className="col-md-12 mt-3">
-                      <div className="alert alert-info" style={{ backgroundColor: '#1e1e2e', borderColor: '#1e1e2e', color: '#fff' }}>
+                      <div className="alert alert-info">
                         <i className="fas fa-info-circle mr-2"></i>
                         <strong>Resumen:</strong> {formData.tipoDocumento} {formData.nroFactura} por{' '}
                         {formData.moneda === 'USD' ? '$' : formData.moneda === 'EUR' ? '€' : 'S/'}{formData.montoTotal}{' '}
                         - Estado: {formData.estadoFactura}
+                        {!factura && uploadWithFile && selectedFile && (
+                          <><br /><strong>Archivo:</strong> {selectedFile.name}</>
+                        )}
                       </div>
                     </div>
                   )}
                 </div>
 
-                {/* Botones de acción */}
+                {/* Botones */}
                 <div className="card-action">
                   <div className="d-flex justify-content-end">
                     <button
@@ -523,12 +591,12 @@ const InvoiceForm = ({ factura, proveedores, onSubmit, onCancel }) => {
                       {loading ? (
                         <>
                           <span className="spinner-border spinner-border-sm mr-2" role="status"></span>
-                          {factura ? 'Actualizando...' : 'Creando...'}
+                          {factura ? 'Actualizando...' : (!factura && uploadWithFile) ? 'Subiendo...' : 'Creando...'}
                         </>
                       ) : (
                         <>
-                          <i className={`fas ${factura ? 'fa-save' : 'fa-plus'} mr-2`}></i>
-                          {factura ? 'Actualizar Factura' : 'Crear Factura'}
+                          <i className={`fas ${factura ? 'fa-save' : (!factura && uploadWithFile) ? 'fa-upload' : 'fa-plus'} mr-2`}></i>
+                          {factura ? 'Actualizar Factura' : (!factura && uploadWithFile) ? 'Crear con Archivo' : 'Crear Factura'}
                         </>
                       )}
                     </button>

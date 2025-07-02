@@ -11,17 +11,14 @@ const InvoiceList = () => {
   const [filteredFacturas, setFilteredFacturas] = useState([]);
   const [proveedores, setProveedores] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingFactura, setEditingFactura] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
 
-  // Hook para notificaciones
   const { notification, closeNotification, showError, showConfirm } = useNotification();
 
-  // Estado para modal de éxito
   const [successModal, setSuccessModal] = useState({
     isVisible: false,
     message: '',
@@ -33,11 +30,7 @@ const InvoiceList = () => {
   }, []);
 
   const showSuccessModal = (message, title = '¡Éxito!') => {
-    setSuccessModal({
-      isVisible: true,
-      message,
-      title
-    });
+    setSuccessModal({ isVisible: true, message, title });
   };
 
   const hideSuccessModal = () => {
@@ -47,16 +40,11 @@ const InvoiceList = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      setError('');
 
-      // Cargar facturas y proveedores en paralelo
       const [facturasResponse, proveedoresResponse] = await Promise.all([
         invoiceService.getAll(),
         proveedorService.getAll()
       ]);
-
-      console.log('Facturas cargadas:', facturasResponse);
-      console.log('Proveedores cargados:', proveedoresResponse);
 
       const facturasArray = Array.isArray(facturasResponse) ? facturasResponse :
         Array.isArray(facturasResponse.data) ? facturasResponse.data : [];
@@ -68,8 +56,6 @@ const InvoiceList = () => {
       setFilteredFacturas(facturasArray);
       setProveedores(proveedoresArray);
     } catch (error) {
-      console.error('Error cargando datos:', error);
-      setError(error.message || 'Error al cargar datos');
       setFacturas([]);
       setFilteredFacturas([]);
       setProveedores([]);
@@ -93,28 +79,20 @@ const InvoiceList = () => {
 
     let filtered = facturas;
 
-    // Filtro por búsqueda
     if (search && search.trim() !== '') {
       const searchLower = search.toLowerCase();
       filtered = filtered.filter(factura => {
         if (!factura) return false;
 
-        const matchesNroFactura = factura.nroFactura &&
-          factura.nroFactura.toLowerCase().includes(searchLower);
-
-        const matchesDescripcion = factura.descripcion &&
-          factura.descripcion.toLowerCase().includes(searchLower);
-
-        const matchesProveedor = factura.proveedorId && proveedores.find(p => p.id === factura.proveedorId) &&
-          proveedores.find(p => p.id === factura.proveedorId).razonSocial.toLowerCase().includes(searchLower);
-
-        const matchesId = factura.id &&
-          factura.id.toString().includes(searchLower);
+        const matchesNroFactura = factura.nroFactura?.toLowerCase().includes(searchLower);
+        const matchesDescripcion = factura.descripcion?.toLowerCase().includes(searchLower);
+        const matchesProveedor = factura.proveedorId && proveedores.find(p => p.id === factura.proveedorId)?.razonSocial.toLowerCase().includes(searchLower);
+        const matchesId = factura.id?.toString().includes(searchLower);
 
         return matchesNroFactura || matchesDescripcion || matchesProveedor || matchesId;
       });
     }
-    
+
     setFilteredFacturas(filtered);
   };
 
@@ -175,28 +153,47 @@ const InvoiceList = () => {
     );
   };
 
-  const handleFormSubmit = async (facturaData) => {
+  const handleDownload = async (facturaId, nroFactura) => {
+    try {
+      const blob = await invoiceService.downloadFile(facturaId);
+
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `factura_${nroFactura}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      showSuccessModal('Archivo descargado exitosamente', '¡Descarga completa!');
+    } catch (error) {
+      showError(
+        'Error al descargar archivo',
+        'No se pudo descargar el archivo. Verifique que la factura tenga un archivo adjunto.'
+      );
+    }
+  };
+
+  const handleFormSubmit = async (facturaData, isWithFile = false) => {
     try {
       if (editingFactura) {
         await invoiceService.update(editingFactura.id, facturaData);
-
-        setShowForm(false);
-        setEditingFactura(null);
-        await loadData();
-
         showSuccessModal('La factura se ha actualizado exitosamente', '¡Actualizada!');
-
       } else {
-        await invoiceService.create(facturaData);
-
-        setShowForm(false);
-        setEditingFactura(null);
-        await loadData();
-
+        if (isWithFile) {
+          await invoiceService.createWithFile(facturaData);
+        } else {
+          await invoiceService.create(facturaData);
+        }
         showSuccessModal('La factura se ha creado exitosamente', '¡Creada!');
       }
+
+      setShowForm(false);
+      setEditingFactura(null);
+      await loadData();
     } catch (error) {
-      console.error('Error en handleFormSubmit:', error);
       throw error;
     }
   };
@@ -299,13 +296,14 @@ const InvoiceList = () => {
                             <th>Fecha Vencimiento</th>
                             <th>Monto</th>
                             <th>Estado</th>
+                            <th>Archivo</th>
                             <th>Acciones</th>
                           </tr>
                         </thead>
                         <tbody>
                           {currentItems.length === 0 ? (
                             <tr>
-                              <td colSpan="8" className="text-center py-4">
+                              <td colSpan="9" className="text-center py-4">
                                 <div className="empty-state">
                                   <i className="fas fa-file-invoice fa-3x text-muted mb-3"></i>
                                   <h5 className="text-muted">No se encontraron facturas</h5>
@@ -353,6 +351,28 @@ const InvoiceList = () => {
                                   <small className="text-muted">{factura.moneda || 'PEN'}</small>
                                 </td>
                                 <td>{getStatusBadge(factura.estadoFactura)}</td>
+                                <td>
+                                  {factura.nombreArchivo ? (
+                                    <div className="d-flex align-items-center">
+                                      <i className="fas fa-file-pdf text-danger mr-2" title="Archivo PDF"></i>
+                                      <button
+                                        type="button"
+                                        className="btn btn-link btn-sm p-0 text-primary"
+                                        onClick={() => handleDownload(factura.id, factura.nroFactura)}
+                                        title={`Descargar ${factura.nombreArchivo}`}
+                                        disabled={loading}
+                                      >
+                                        <i className="fas fa-download mr-1"></i>
+                                        Descargar
+                                      </button>
+                                    </div>
+                                  ) : (
+                                    <span className="text-muted">
+                                      <i className="fas fa-minus-circle mr-1"></i>
+                                      Sin archivo
+                                    </span>
+                                  )}
+                                </td>
                                 <td>
                                   <div className="form-button-action">
                                     <button
@@ -439,8 +459,6 @@ const InvoiceList = () => {
           </div>
         </div>
       </div>
-
-      {/* Modal de confirmaciones y errores */}
       <Modal
         isOpen={notification.isOpen}
         onClose={closeNotification}
@@ -452,8 +470,6 @@ const InvoiceList = () => {
         cancelText={notification.cancelText}
         showCancel={notification.showCancel}
       />
-
-      {/* Modal de éxito */}
       <SuccessModal
         isVisible={successModal.isVisible}
         message={successModal.message}
