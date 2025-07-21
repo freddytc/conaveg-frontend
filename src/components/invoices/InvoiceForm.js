@@ -220,14 +220,6 @@ const InvoiceForm = ({ factura, proveedores, onSubmit, onCancel }) => {
                 <h4 className="card-title">
                   {factura ? 'Editar Factura' : 'Agregar Nueva Factura'}
                 </h4>
-                <button
-                  type="button"
-                  className="btn btn-secondary btn-round ml-auto mr-2"
-                  onClick={onCancel}
-                >
-                  <i className="fas fa-arrow-left mr-2"></i>
-                  Volver
-                </button>
               </div>
             </div>
 
@@ -585,7 +577,7 @@ const InvoiceForm = ({ factura, proveedores, onSubmit, onCancel }) => {
                     </button>
                     <button
                       type="submit"
-                      className="btn btn-primary"
+                      className="btn btn-success"
                       disabled={loading}
                     >
                       {loading ? (

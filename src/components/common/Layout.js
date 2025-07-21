@@ -2,15 +2,15 @@ import React, { useEffect } from 'react';
 import Header from './Header';
 import Sidebar from './Sidebar';
 import Footer from './Footer';
-import '../styles/DarkTheme.css'; 
-  
+import '../styles/LightTheme.css'; // Cambiar a tema claro
+
 const Layout = ({ children }) => {
   useEffect(() => {
     // Agregar clases necesarias al body
     document.body.classList.add('sidebar-mini');
-    // Aplicar tema oscuro al body
-    document.body.style.background = 'linear-gradient(135deg, #1e1e2e 0%, #2a2d47 100%)';
-    document.body.style.color = '#fff';
+    // Aplicar tema claro al body
+    document.body.style.background = '#f8f9fa'; // Fondo blanco/gris muy claro
+    document.body.style.color = '#212529'; // Texto oscuro
     
     // Cleanup al desmontar
     return () => {
@@ -32,8 +32,8 @@ const Layout = ({ children }) => {
         <div 
           className="main-panel"
           style={{
-            background: 'linear-gradient(135deg, #1e1e2e 0%, #2a2d47 100%)',
-            color: '#fff',
+            background: '#ffffff', // Fondo blanco
+            color: '#212529', // Texto oscuro
             minHeight: '100vh'
           }}
         >
@@ -41,7 +41,7 @@ const Layout = ({ children }) => {
             className="content"
             style={{
               background: 'transparent',
-              color: '#fff',
+              color: '#212529', // Texto oscuro
               padding: '20px'
             }}
           >
@@ -49,7 +49,7 @@ const Layout = ({ children }) => {
               className="page-inner"
               style={{
                 background: 'transparent',
-                color: '#fff'
+                color: '#212529' // Texto oscuro
               }}
             >
               {children}

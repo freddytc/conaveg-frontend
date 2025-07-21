@@ -18,11 +18,11 @@ const UserForm = ({ user, onSubmit, onCancel }) => {
       try {
         setLoadingRoles(true);
         const response = await fetch('http://localhost:8080/conaveg/api/roles');
-        
+
         if (!response.ok) {
           throw new Error('Error al obtener los roles');
         }
-        
+
         const data = await response.json();
         setRoles(data);
       } catch (error) {
@@ -31,7 +31,8 @@ const UserForm = ({ user, onSubmit, onCancel }) => {
         setRoles([
           { id: 1, nombre: 'EMPLEADO' },
           { id: 2, nombre: 'GERENTE' },
-          { id: 3, nombre: 'ADMINISTRADOR' }
+          { id: 3, nombre: 'ADMINISTRADOR' },
+          { id: 4, nombre: 'USER' }
         ]);
       } finally {
         setLoadingRoles(false);
@@ -65,7 +66,7 @@ const UserForm = ({ user, onSubmit, onCancel }) => {
       ...prev,
       [name]: value
     }));
-    
+
     // Limpiar error del campo que se está modificando
     if (errors[name]) {
       setErrors(prev => ({
@@ -111,20 +112,20 @@ const UserForm = ({ user, onSubmit, onCancel }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
 
     setLoading(true);
-    
+
     try {
       const submitData = {
         userName: formData.userName.trim(),
         email: formData.email.trim(),
         role: formData.role
       };
-      
+
       // Solo incluir password si fue proporcionada
       if (formData.password && formData.password.trim()) {
         submitData.password = formData.password.trim();
@@ -143,7 +144,7 @@ const UserForm = ({ user, onSubmit, onCancel }) => {
   const getRoleDisplayName = (roleName) => {
     const roleMap = {
       'ADMINISTRADOR': 'Administrador',
-      'GERENTE': 'Gerente', 
+      'GERENTE': 'Gerente',
       'EMPLEADO': 'Empleado',
       'USER': 'Usuario'
     };
@@ -187,7 +188,7 @@ const UserForm = ({ user, onSubmit, onCancel }) => {
                 {user ? 'Editar Usuario' : 'Crear Nuevo Usuario'}
               </div>
             </div>
-            
+
             <form onSubmit={handleSubmit}>
               <div className="card-body">
                 {/* Error general del formulario */}
@@ -221,7 +222,7 @@ const UserForm = ({ user, onSubmit, onCancel }) => {
                       )}
                     </div>
                   </div>
-                  
+
                   <div className="col-md-6">
                     <div className="form-group">
                       <label htmlFor="email">
@@ -276,7 +277,7 @@ const UserForm = ({ user, onSubmit, onCancel }) => {
                       )}
                     </div>
                   </div>
-                  
+
                   <div className="col-md-6">
                     <div className="form-group">
                       <label htmlFor="role">
@@ -334,7 +335,7 @@ const UserForm = ({ user, onSubmit, onCancel }) => {
                     </>
                   )}
                 </button>
-                
+
                 <button
                   type="button"
                   className="btn btn-danger ml-2"
@@ -348,7 +349,7 @@ const UserForm = ({ user, onSubmit, onCancel }) => {
             </form>
           </div>
         </div>
-        
+
         <div className="col-md-4">
           <div className="card">
             <div className="card-header">
@@ -362,7 +363,7 @@ const UserForm = ({ user, onSubmit, onCancel }) => {
                 <li>Al menos una letra mayúscula</li>
                 <li>Al menos un número</li>
               </ul>
-              
+
               <p><strong>Nombre de usuario:</strong></p>
               <ul>
                 <li>Entre 3 y 50 caracteres</li>

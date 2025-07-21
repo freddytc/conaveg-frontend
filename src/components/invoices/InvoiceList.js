@@ -92,7 +92,7 @@ const InvoiceList = () => {
         return matchesNroFactura || matchesDescripcion || matchesProveedor || matchesId;
       });
     }
-
+    
     setFilteredFacturas(filtered);
   };
 
@@ -156,17 +156,17 @@ const InvoiceList = () => {
   const handleDownload = async (facturaId, nroFactura) => {
     try {
       const blob = await invoiceService.downloadFile(facturaId);
-
+      
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
       link.download = `factura_${nroFactura}.pdf`;
       document.body.appendChild(link);
       link.click();
-
+      
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
-
+      
       showSuccessModal('Archivo descargado exitosamente', '¡Descarga completa!');
     } catch (error) {
       showError(
@@ -459,6 +459,7 @@ const InvoiceList = () => {
           </div>
         </div>
       </div>
+
       <Modal
         isOpen={notification.isOpen}
         onClose={closeNotification}
@@ -470,6 +471,7 @@ const InvoiceList = () => {
         cancelText={notification.cancelText}
         showCancel={notification.showCancel}
       />
+
       <SuccessModal
         isVisible={successModal.isVisible}
         message={successModal.message}

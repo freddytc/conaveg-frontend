@@ -41,7 +41,7 @@ export const invoiceService = {
   },
 
   // Actualizar factura
-  update: (id, factura) => api.put(`/facturas/${id}`, factura),
+  update: (id, factura) => api.patch(`/facturas/${id}`, factura), // 👈 CAMBIO AQUÍ
 
   // Eliminar factura
   delete: (id) => api.delete(`/facturas/${id}`),

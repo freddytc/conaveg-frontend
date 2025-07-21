@@ -36,7 +36,7 @@ const ProveedorForm = ({ proveedor, onSubmit, onCancel }) => {
         [name]: ''
       }));
     }
-    
+
     // Limpiar error general también
     if (errors.general) {
       setErrors(prev => ({
@@ -95,7 +95,7 @@ const ProveedorForm = ({ proveedor, onSubmit, onCancel }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
@@ -105,13 +105,13 @@ const ProveedorForm = ({ proveedor, onSubmit, onCancel }) => {
       await onSubmit(formData);
     } catch (error) {
       console.error('Error capturado en formulario:', error);
-      
+
       // Limpiar errores previos
       setErrors({});
-      
+
       // Manejar errores específicos
       const errorMessage = error.message || '';
-      
+
       if (errorMessage.includes('ruc') && errorMessage.includes('unique')) {
         setErrors({
           ruc: 'Ya existe un proveedor con este RUC en el sistema'
@@ -190,14 +190,6 @@ const ProveedorForm = ({ proveedor, onSubmit, onCancel }) => {
                 <h4 className="card-title">
                   {proveedor ? 'Editar Proveedor' : 'Agregar Nuevo Proveedor'}
                 </h4>
-                <button
-                  type="button"
-                  className="btn btn-secondary btn-round ml-auto mr-2"
-                  onClick={onCancel}
-                >
-                  <i className="fas fa-arrow-left mr-2"></i>
-                  Volver
-                </button>
               </div>
             </div>
 
@@ -347,7 +339,7 @@ const ProveedorForm = ({ proveedor, onSubmit, onCancel }) => {
                     </button>
                     <button
                       type="submit"
-                      className="btn btn-primary"
+                      className="btn btn-success"
                       disabled={loading}
                     >
                       {loading ? (

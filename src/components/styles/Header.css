@@ -1,0 +1,301 @@
+/* ✅ Header principal */
+.main-header-logo {
+  margin: 0;
+  padding: 0;
+}
+
+.logo-header {
+  background: linear-gradient(135deg, #1e1e2e 0%, #2a2d47 100%);
+  display: flex;
+  align-items: stretch;
+  padding: 0;
+  height: 62px;
+  border-bottom: none;
+  margin: 0;
+  box-shadow: none;
+  border-bottom: none !important;
+  box-shadow: none !important;
+}
+
+/* ✅ Container del logo y toggle */
+.logo-toggle-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 100%;
+  width: 100%;
+  background: rgb(30, 30, 46);
+}
+
+.logo-toggle-container.expanded {
+  justify-content: space-between;
+}
+
+.logo-toggle-container.collapsed {
+  justify-content: center;
+}
+
+/* ✅ Título de la empresa */
+.login-title {
+  margin: 0;
+  padding: 0;
+  color: #fff;
+  font-size: 24px;
+  font-weight: bold;
+  line-height: 1;
+}
+
+/* ✅ Toggle button */
+.navbar-toggler.sidenav-toggler {
+  background: none;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+  border-radius: 4px;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  visibility: visible !important;
+  opacity: 1 !important;
+  transition: background-color 0.3s ease;
+}
+
+.navbar-toggler.sidenav-toggler:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.navbar-toggler.sidenav-toggler:focus {
+  outline: none;
+}
+
+.navbar-toggler.sidenav-toggler.collapsed {
+  margin-left: 0;
+}
+
+.navbar-toggler.sidenav-toggler.expanded {
+  margin-left: 10px;
+}
+
+/* ✅ Iconos del toggle - 3 líneas */
+.toggle-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 20px;
+}
+
+.toggle-line {
+  width: 100%;
+  height: 2px;
+  background-color: #fff;
+  border-radius: 1px;
+}
+
+/* ✅ Iconos del toggle - 3 puntos */
+.toggle-dots {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  align-items: center;
+}
+
+.toggle-dot {
+  width: 4px;
+  height: 4px;
+  background-color: #fff;
+  border-radius: 50%;
+}
+
+/* ✅ Elementos del lado derecho */
+.header-right-elements {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 100%;
+}
+
+.topbar-toggler.more {
+  background: none;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+.topbar-toggler.more:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.topbar-toggler.more:focus {
+  outline: none;
+}
+
+/* ✅ Navbar */
+.navbar.navbar-header {
+  margin: 0;
+  padding: 0;
+  border-top: none;
+}
+
+/* ✅ Notificaciones */
+.notification-icon {
+  font-size: 18px;
+  animation: none;
+}
+
+.notification-icon.has-notifications {
+  color: #000000ff;
+  animation: pulse 2s infinite;
+}
+
+.notification-icon.no-notifications {
+  color: #6861ce;
+}
+
+.notification-badge {
+  position: absolute;
+  top: -5px;
+  right: -8px;
+  border-radius: 50%;
+  font-size: 10px;
+  min-width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ✅ Dropdown de notificaciones */
+.notification-dropdown {
+  width: 380px;
+  max-height: 450px;
+  overflow-y: auto;
+}
+
+.notification-item {
+  border-left-width: 4px;
+  border-left-style: solid;
+  padding-left: 12px;
+  cursor: pointer;
+}
+
+.notification-item.danger {
+  border-left-color: #dc3545;
+}
+
+.notification-item.warning {
+  border-left-color: #ffc107;
+}
+
+.notification-icon-container {
+  margin-right: 12px;
+  margin-top: 4px;
+}
+
+.notification-icon-item {
+  font-size: 16px;
+}
+
+.notification-icon-item.danger {
+  color: #dc3545;
+}
+
+.notification-icon-item.warning {
+  color: #ffc107;
+}
+
+.notification-content {
+  flex-grow: 1;
+}
+
+.notification-title {
+  font-size: 13px;
+  font-weight: bold;
+}
+
+.notification-message {
+  font-size: 12px;
+  color: #6c757d;
+}
+
+.notification-time {
+  font-size: 11px;
+  color: #adb5bd;
+}
+
+.notification-remove {
+  margin-left: 8px;
+}
+
+.notification-remove-btn {
+  color: #6c757d;
+  font-size: 12px;
+}
+
+/* ✅ Estados de carga */
+.loading-notifications {
+  text-align: center;
+  padding: 12px;
+}
+
+.empty-notifications {
+  text-align: center;
+  padding: 16px;
+  color: #6c757d;
+}
+
+.empty-notifications-icon {
+  font-size: 24px;
+  margin-bottom: 8px;
+}
+
+/* ✅ Overlay para dropdowns */
+.dropdown-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 999;
+  background: transparent;
+}
+
+/* ✅ Responsive */
+@media (max-width: 768px) {
+  .logo-header {
+    padding: 0 10px;
+    height: 50px;
+  }
+
+  .login-title {
+    font-size: 20px;
+  }
+
+  .navbar-toggler.sidenav-toggler {
+    width: 35px;
+    height: 35px;
+  }
+
+  .notification-dropdown {
+    width: 320px;
+  }
+}
+
+/* ✅ Animaciones */
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.1);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}

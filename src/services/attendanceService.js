@@ -14,5 +14,8 @@ export const attendanceService = {
   update: (id, asistencia) => api.put(`/asistencias/${id}`, asistencia),
   
   // Eliminar asistencia
-  delete: (id) => api.delete(`/asistencias/${id}`)
+  delete: (id) => api.delete(`/asistencias/${id}`),
+
+  //AGREGAR REGISTRO RÁPIDO
+  registroRapido: (datos) => api.post('/asistencias/registro-rapido', datos)
 };

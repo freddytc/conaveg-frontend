@@ -176,17 +176,8 @@ const ProjectForm = ({ project, onSubmit, onCancel }) => {
                 <h4 className="card-title">
                   {project ? 'Editar Proyecto' : 'Crear Nuevo Proyecto'}
                 </h4>
-                <button
-                  type="button"
-                  className="btn btn-secondary btn-round ml-auto mr-2"
-                  onClick={onCancel}
-                >
-                  <i className="fas fa-arrow-left mr-2"></i>
-                  Volver
-                </button>
               </div>
             </div>
-
             <div className="card-body">
               <form onSubmit={handleSubmit}>
                 <div className="row">
@@ -199,7 +190,6 @@ const ProjectForm = ({ project, onSubmit, onCancel }) => {
                       </div>
                     </div>
                   )}
-
                   {/* Información General del Proyecto */}
                   <div className="col-md-12">
                     <h5 className="mb-3">
@@ -364,7 +354,7 @@ const ProjectForm = ({ project, onSubmit, onCancel }) => {
                     </button>
                     <button
                       type="submit"
-                      className="btn btn-primary"
+                      className="btn btn-success"
                       disabled={loading}
                     >
                       {loading ? (

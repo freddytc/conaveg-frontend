@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { api } from '../../services/api';
 
 const InventoryForm = ({ item, onSubmit, onCancel }) => {
   const [formData, setFormData] = useState({
@@ -25,18 +26,16 @@ const InventoryForm = ({ item, onSubmit, onCancel }) => {
     const fetchCategorias = async () => {
       try {
         setLoadingCategorias(true);
-        const response = await fetch('http://localhost:8080/conaveg/api/categorias-inventario');
 
-        if (!response.ok) {
-          throw new Error('Error al obtener las categorías');
-        }
-
-        const data = await response.json();
+        // Usar api.get
+        const data = await api.get('/categorias-inventario');
         setCategorias(data);
+
       } catch (error) {
         console.error('Error al cargar categorías:', error);
-        // Mostrar error pero no bloquear el formulario
+
         setCategorias([]);
+
       } finally {
         setLoadingCategorias(false);
       }
@@ -251,14 +250,6 @@ const InventoryForm = ({ item, onSubmit, onCancel }) => {
                 <h4 className="card-title">
                   {item ? 'Editar Producto' : 'Agregar Nuevo Producto'}
                 </h4>
-                <button
-                  type="button"
-                  className="btn btn-secondary btn-round ml-auto mr-2"
-                  onClick={onCancel}
-                >
-                  <i className="fas fa-arrow-left mr-2"></i>
-                  Volver
-                </button>
               </div>
             </div>
 
@@ -560,7 +551,7 @@ const InventoryForm = ({ item, onSubmit, onCancel }) => {
                     </button>
                     <button
                       type="submit"
-                      className="btn btn-primary"
+                      className="btn btn-success"
                       disabled={loading}
                     >
                       {loading ? (

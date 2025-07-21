@@ -1,141 +1,93 @@
 import { api } from './api';
 
-// Credenciales ficticias para desarrollo
-const MOCK_USERS = [
-  {
-    email: 'admin@conaveg.com',
-    password: 'admin123',
-    user: {
-      id: 1,
-      userName: 'admin',
-      email: 'admin@conaveg.com',
-      role: 'ADMIN',
-      firstName: 'Administrador',
-      lastName: 'Sistema'
-    },
-    token: 'mock-jwt-token-admin-123'
-  },
-  {
-    email: 'gerente@conaveg.com',
-    password: 'gerente123',
-    user: {
-      id: 2,
-      userName: 'gerente',
-      email: 'gerente@conaveg.com',
-      role: 'GERENTE',
-      firstName: 'Gerente',
-      lastName: 'General'
-    },
-    token: 'mock-jwt-token-gerente-456'
-  },
-  {
-    email: 'empleado@conaveg.com',
-    password: 'empleado123',
-    user: {
-      id: 3,
-      userName: 'empleado',
-      email: 'empleado@conaveg.com',
-      role: 'EMPLEADO',
-      firstName: 'Empleado',
-      lastName: 'Test'
-    },
-    token: 'mock-jwt-token-empleado-789'
-  }
-];
-
 export const authService = {
-  // Login con credenciales ficticias
   login: async (credentials) => {
     try {
-      // Simular delay de red
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      console.log('Datos enviados al backend:', credentials);
       
-      // Buscar usuario ficticio
-      const mockUser = MOCK_USERS.find(user => 
-        user.email === credentials.userName && user.password === credentials.password
-      );
-      
-      if (mockUser) {
-        // Simular respuesta exitosa
-        localStorage.setItem('token', mockUser.token);
-        localStorage.setItem('user', JSON.stringify(mockUser.user));
+      const response = await api.post('/auth/login', {
+        email: credentials.email,
+        password: credentials.password
+      });
+
+      if (response.token && response.user) {
+        localStorage.setItem('token', response.token);
+        localStorage.setItem('user', JSON.stringify(response.user));
         
-        console.log('Login ficticio exitoso:', mockUser.user);
-        return {
-          token: mockUser.token,
-          user: mockUser.user
-        };
+        console.log('Login exitoso:', response.user);
+        return response;
       } else {
-        throw new Error('Credenciales inválidas');
+        throw new Error('Respuesta del servidor inválida');
       }
       
     } catch (error) {
-      console.error('Error en login ficticio:', error);
+      console.error('Error en login:', error);
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
       throw new Error(error.message || 'Error al iniciar sesión');
     }
   },
 
-  // Logout
   logout: async () => {
-    try {
-      // Simular llamada al backend
-      await new Promise(resolve => setTimeout(resolve, 500));
-      console.log('Logout ficticio ejecutado');
-    } catch (error) {
-      console.error('Error en logout:', error);
-    } finally {
-      // Limpiar datos locales siempre
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-    }
+    // Versión simplificada - solo limpiar localStorage
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    console.log('Logout completado');
   },
 
-  // Verificar si está autenticado
   isAuthenticated: () => {
-    return !!localStorage.getItem('token');
+    const token = localStorage.getItem('token');
+    const user = localStorage.getItem('user');
+    return !!(token && user);
   },
 
-  // Obtener usuario actual
   getCurrentUser: () => {
     const userStr = localStorage.getItem('user');
     return userStr ? JSON.parse(userStr) : null;
   },
 
-  // Obtener token
   getToken: () => {
     return localStorage.getItem('token');
   },
 
-  // Validar token (ficticio)
+  // Validación simplificada para desarrollo
+  validateTokenSimple: () => {
+    const token = localStorage.getItem('token');
+    const user = localStorage.getItem('user');
+    
+    if (!token || !user) return false;
+    
+    try {
+      // Verificar que el token no esté expirado (si es JWT)
+      if (token.includes('.')) {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        const currentTime = Date.now() / 1000;
+        
+        if (payload.exp && payload.exp < currentTime) {
+          console.log('Token expirado');
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          return false;
+        }
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Error validando token:', error);
+      return true; // En caso de error, asumir que es válido por ahora
+    }
+  },
+
+  // Métodos adicionales simplificados
   validateToken: async () => {
-    try {
-      const token = localStorage.getItem('token');
-      // Simular validación
-      await new Promise(resolve => setTimeout(resolve, 300));
-      return token && token.startsWith('mock-jwt-token');
-    } catch (error) {
-      return false;
-    }
+    return this.validateTokenSimple();
   },
 
-  // Obtener información del usuario desde el backend (ficticio)
   getCurrentUserFromServer: async () => {
-    try {
-      const user = authService.getCurrentUser();
-      // Simular respuesta del servidor
-      await new Promise(resolve => setTimeout(resolve, 500));
-      return user;
-    } catch (error) {
-      throw new Error('Error al obtener información del usuario');
-    }
+    return this.getCurrentUser();
   },
 
-  // Obtener credenciales ficticias para mostrar en desarrollo
-  getMockCredentials: () => {
-    return MOCK_USERS.map(user => ({
-      email: user.email,
-      password: user.password,
-      role: user.user.role
-    }));
+  refreshToken: async () => {
+    throw new Error('Refresh token no implementado aún');
   }
 };

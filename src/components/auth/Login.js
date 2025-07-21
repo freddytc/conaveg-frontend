@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
-import { authService } from '../../services/authService';
+import { useAuth } from '../../hooks/useAuth';
 import '../styles/Login.css';
 
 const Login = ({ onLoginSuccess }) => {
+  const { login } = useAuth();
   const [formData, setFormData] = useState({
-    userName: '',
+    email: '',        // Cambiado de userName a email
     password: ''
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [showMockCredentials, setShowMockCredentials] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
@@ -22,20 +22,39 @@ const Login = ({ onLoginSuccess }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!formData.userName.trim() || !formData.password.trim()) {
+
+    // Validaciones del frontend
+    if (!formData.email.trim() || !formData.password.trim()) {
       setError('Por favor complete todos los campos');
       return;
     }
-    
+
+    // Validación básica de email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setError('Por favor ingrese un email válido');
+      return;
+    }
+
+    // Validación de contraseña mínima
+    if (formData.password.length < 6) {
+      setError('La contraseña debe tener al menos 6 caracteres');
+      return;
+    }
+
     setLoading(true);
     setError('');
 
     try {
-      console.log('Intentando login con credenciales ficticias:', { email: formData.userName });
-      await authService.login(formData);
-      console.log('Login exitoso');
-      onLoginSuccess();
+      console.log('Datos del formulario:', formData);
+      console.log('Intentando login con backend...');
+
+      const result = await login(formData);
+      console.log('Login exitoso:', result);
+
+      if (onLoginSuccess) {
+        onLoginSuccess();
+      }
     } catch (error) {
       console.error('Error en login:', error);
       setError(error.message || 'Error al iniciar sesión');
@@ -44,27 +63,20 @@ const Login = ({ onLoginSuccess }) => {
     }
   };
 
-  const fillCredentials = (email, password) => {
-    setFormData({ userName: email, password: password });
-    setShowMockCredentials(false);
-  };
-
-  const mockCredentials = authService.getMockCredentials();
-
   return (
     <div className="login">
       <div className="container-fluid">
         <div className="row justify-content-center">
           <div className="col-12 login-container">
-            
+
             {/* Card principal con diseño dividido */}
-            <div className="card shadow-lg login-card">
-              <div className="row no-gutters login-row">
-                
+            <div className="card login-card">
+              <div className="row login-row">
+
                 {/* Panel Izquierdo - Información */}
                 <div className="col-lg-6 d-flex login-left-panel">
                   <div className="login-left-content">
-                    
+
                     {/* Logo y título */}
                     <div className="mb-4">
                       <div className="login-logo">
@@ -88,7 +100,7 @@ const Login = ({ onLoginSuccess }) => {
                           <strong>Gestión de Personal</strong><br />
                         </div>
                       </div>
-                      
+
                       <div className="login-feature">
                         <div className="login-feature-icon">
                           <i className="fas fa-boxes"></i>
@@ -97,7 +109,7 @@ const Login = ({ onLoginSuccess }) => {
                           <strong>Control de Inventarios</strong><br />
                         </div>
                       </div>
-                      
+
                       <div className="login-feature">
                         <div className="login-feature-icon">
                           <i className="fas fa-project-diagram"></i>
@@ -113,7 +125,7 @@ const Login = ({ onLoginSuccess }) => {
                 {/* Panel Derecho - Formulario */}
                 <div className="col-lg-6 d-flex login-right-panel">
                   <div className="login-right-content">
-                    
+
                     {/* Título del formulario */}
                     <div className="text-center mb-4">
                       <h2 className="login-form-title">
@@ -142,15 +154,16 @@ const Login = ({ onLoginSuccess }) => {
                             </span>
                           </div>
                           <input
-                            id="userName"
-                            name="userName"
+                            id="email"
+                            name="email"
                             type="email"
                             className={`form-control login-input ${error ? 'is-invalid' : ''}`}
-                            value={formData.userName}
+                            value={formData.email}
                             onChange={handleChange}
                             placeholder="Ingrese su email"
                             required
                             disabled={loading}
+                            autoComplete="email"
                           />
                         </div>
                       </div>
@@ -172,6 +185,7 @@ const Login = ({ onLoginSuccess }) => {
                             placeholder="Ingrese su contraseña"
                             required
                             disabled={loading}
+                            autoComplete="current-password"
                           />
                           <div className="input-group-append">
                             <button

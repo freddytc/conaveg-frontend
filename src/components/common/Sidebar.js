@@ -1,11 +1,10 @@
-import React, { useState } from 'react';
-import { authService } from '../../services/authService';
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../../hooks/useAuth';
 import '../styles/Sidebar.css';
 
 const Sidebar = () => {
-  const user = authService.getCurrentUser();
-  
-  // Estado para controlar qué secciones están expandidas
+  const { user, isAuthenticated } = useAuth();
+
   const [expandedSections, setExpandedSections] = useState({
     administracion: false,
     recursos: false,
@@ -13,22 +12,49 @@ const Sidebar = () => {
     operaciones: false
   });
 
-  // Estado para el item activo
   const [activeItem, setActiveItem] = useState('dashboard');
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
-  const canViewSection = (section) => {
-    if (!user) return false;
-
-    const permissions = {
-      ADMIN: ['usuarios', 'empleados', 'inventario', 'movimientos', 'asignaciones', 'proyectos', 'asistencias', 'facturas', 'proveedores'],
-      GERENTE: ['empleados', 'inventario', 'movimientos', 'asignaciones','proyectos', 'asistencias', 'proveedores', 'facturas'],
-      EMPLEADO: ['inventario', 'movimientos', 'proyectos']
+  // ✅ Escuchar cambios en el body class
+  useEffect(() => {
+    const checkCollapsedState = () => {
+      setIsCollapsed(document.body.classList.contains('sidebar_minimize'));
     };
 
-    return permissions[user.role]?.includes(section) || false;
+    checkCollapsedState();
+
+    const observer = new MutationObserver(checkCollapsedState);
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  // ✅ Toggle del sidebar
+  const toggleSidebar = () => {
+    document.body.classList.toggle('sidebar_minimize');
+    setIsCollapsed(!isCollapsed);
+  };
+
+  const canViewSection = (section) => {
+    if (!user || !isAuthenticated) return false;
+
+    const permissions = {
+      ADMINISTRADOR: ['usuarios', 'empleados', 'inventario', 'movimientos', 'asignaciones', 'proyectos', 'asistencias', 'facturas', 'proveedores'],
+      ADMIN: ['usuarios', 'empleados', 'inventario', 'movimientos', 'asignaciones', 'proyectos', 'asistencias', 'facturas', 'proveedores'],
+      GERENTE: ['empleados', 'inventario', 'movimientos', 'asignaciones', 'proyectos', 'asistencias', 'proveedores', 'facturas'],
+      EMPLEADO: ['inventario', 'movimientos', 'proyectos'],
+      USER: ['inventario', 'proyectos']
+    };
+
+    const userRole = getUserRole();
+    return permissions[userRole]?.includes(section) || false;
   };
 
   const toggleSection = (sectionName) => {
+    if (isCollapsed) return; // No expandir si está colapsado
     setExpandedSections(prev => ({
       ...prev,
       [sectionName]: !prev[sectionName]
@@ -36,14 +62,40 @@ const Sidebar = () => {
   };
 
   const handleItemClick = (itemKey, href) => {
+    if (activeItem === itemKey) {
+      window.location.reload();
+      return;
+    }
     setActiveItem(itemKey);
-    // Navegar sin recargar la página
     window.history.pushState({}, '', href);
-    // Disparar evento para que React Router maneje la navegación
     window.dispatchEvent(new PopStateEvent('popstate'));
   };
 
-  // Definir las secciones y sus elementos
+  const getUserName = () => {
+    if (!user) return 'Usuario';
+    return user.userName || user.name || user.email?.split('@')[0] || 'Usuario';
+  };
+
+  const getUserRole = () => {
+    if (!user) return 'USER';
+
+    if (user.userName === 'admin' || user.email?.includes('admin')) {
+      return 'ADMIN';
+    }
+
+    const role = user.role || user.roles || user.authority || user.tipo || user.tipoUsuario || 'USER';
+
+    if (Array.isArray(role)) {
+      return role[0] || 'USER';
+    }
+
+    if (typeof role === 'object' && role !== null) {
+      return role.nombre || role.name || role.authority || 'USER';
+    }
+
+    return String(role).toUpperCase();
+  };
+
   const sections = [
     {
       id: 'administracion',
@@ -84,9 +136,33 @@ const Sidebar = () => {
     }
   ];
 
+  // ✅ Obtener todos los items individuales para modo colapsado
+  const getAllVisibleItems = () => {
+    const allItems = [];
+    
+    // Dashboard
+    allItems.push({
+      key: 'dashboard',
+      href: '/dashboard',
+      icon: 'fas fa-home',
+      title: 'Dashboard'
+    });
+
+    // Items de cada sección que el usuario puede ver
+    sections.forEach(section => {
+      section.items.forEach(item => {
+        if (canViewSection(item.key)) {
+          allItems.push(item);
+        }
+      });
+    });
+
+    return allItems;
+  };
+
   const renderCollapsibleSection = (section) => {
     const visibleItems = section.items.filter(item => canViewSection(item.key));
-    
+
     if (visibleItems.length === 0) return null;
 
     const isExpanded = expandedSections[section.id];
@@ -109,16 +185,15 @@ const Sidebar = () => {
           </div>
           <i className={`fas fa-chevron-down sidebar-section-chevron ${isExpanded ? 'expanded' : ''}`}></i>
         </a>
-        
-        {/* Submenu colapsible */}
-        <div 
+
+        <div
           className={`sidebar-submenu ${isExpanded ? '' : 'collapsed'}`}
           style={{
             maxHeight: isExpanded ? `${visibleItems.length * 40 + 10}px` : '0'
           }}
         >
           {visibleItems.map((item) => (
-            <a 
+            <a
               key={item.key}
               href="#"
               className={`sidebar-submenu-item ${activeItem === item.key ? 'active' : ''}`}
@@ -139,48 +214,70 @@ const Sidebar = () => {
   return (
     <div className="sidebar">
       <div className="sidebar-wrapper">
-        {/* Header del sidebar */}
         <div className="sidebar-header">
-          <div className="sidebar-user-info">
-            <div className="sidebar-user-avatar">
-              <i className="fas fa-user"></i>
-            </div>
-            <div>
-              <div className="sidebar-user-name">
-                {user?.name || 'Usuario'}
+          {/*Solo mostrar info de usuario si NO está colapsado */}
+          {!isCollapsed && (
+            <div className="sidebar-user-info">
+              <div className="sidebar-user-avatar">
+                <i className="fas fa-user"></i>
               </div>
-              <div className="sidebar-user-role">
-                {user?.role || 'Usuario'}
+              <div className="sidebar-user-details">
+                <div className="sidebar-user-name">
+                  {getUserName()}
+                </div>
+                <div className="sidebar-user-role">
+                  {getUserRole()}
+                </div>
               </div>
             </div>
-          </div>
+          )}
+          
         </div>
 
         <div className="sidebar-content">
-          <ul className="sidebar-nav">
-            {/* Dashboard - Siempre visible */}
-            <li className="nav-item">
-              <a 
-                href="#"
-                className={`sidebar-dashboard-link ${activeItem === 'dashboard' ? 'active' : ''}`}
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleItemClick('dashboard', '/dashboard');
-                }}
-              >
-                <i className="fas fa-home sidebar-dashboard-icon"></i>
-                <span>Dashboard</span>
-              </a>
-            </li>
+          {isCollapsed ? (
+            //Vista colapsada
+            <ul className="sidebar-nav sidebar-nav-collapsed">
+              {getAllVisibleItems().map((item) => (
+                <li key={item.key} className="nav-item">
+                  <a
+                    href="#"
+                    className={`sidebar-collapsed-item ${activeItem === item.key ? 'active' : ''}`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleItemClick(item.key, item.href);
+                    }}
+                    title={item.title}
+                  >
+                    <i className={item.icon}></i>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            //Vista expandida 
+            <ul className="sidebar-nav">
+              <li className="nav-item">
+                <a
+                  href="#"
+                  className={`sidebar-dashboard-link ${activeItem === 'dashboard' ? 'active' : ''}`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleItemClick('dashboard', '/dashboard');
+                  }}
+                >
+                  <i className="fas fa-home sidebar-dashboard-icon"></i>
+                  <span>Dashboard</span>
+                </a>
+              </li>
 
-            {/* Divisor */}
-            <li className="sidebar-modules-divider">
-              MÓDULOS
-            </li>
+              <li className="sidebar-modules-divider">
+                MÓDULOS
+              </li>
 
-            {/* Secciones colapsibles */}
-            {sections.map(section => renderCollapsibleSection(section))}
-          </ul>
+              {sections.map(section => renderCollapsibleSection(section))}
+            </ul>
+          )}
         </div>
       </div>
     </div>

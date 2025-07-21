@@ -349,16 +349,6 @@ const InventoryList = () => {
                                   }}>
                                     <strong>{item.nombre || '-'}</strong>
                                   </div>
-                                  {item.descripcion && (
-                                    <small className="text-muted d-block" style={{
-                                      maxWidth: '150px',
-                                      overflow: 'hidden',
-                                      textOverflow: 'ellipsis',
-                                      whiteSpace: 'nowrap'
-                                    }}>
-                                      {item.descripcion}
-                                    </small>
-                                  )}
                                 </td>
                                 <td>
                                   <div>{item.marca || '-'}</div>

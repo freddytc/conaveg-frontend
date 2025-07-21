@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-const EmployeeForm = ({ employee, onSubmit, onCancel }) => {
+const EmployeeForm = ({ employee, onSubmit, onCancel, existingEmployees = [] }) => {
   const [formData, setFormData] = useState({
     nombres: '',
     apellidos: '',
@@ -17,6 +17,12 @@ const EmployeeForm = ({ employee, onSubmit, onCancel }) => {
 
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  
+  // Estados para el autocompletado
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [filteredEmployees, setFilteredEmployees] = useState([]);
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
 
   // Opciones para los campos de selección
   const puestos = [
@@ -52,6 +58,85 @@ const EmployeeForm = ({ employee, onSubmit, onCancel }) => {
     }
   }, [employee]);
 
+  // Función para filtrar empleados basado en el término de búsqueda
+  const filterEmployees = (term) => {
+    if (!term || term.length < 2) {
+      setFilteredEmployees([]);
+      return;
+    }
+
+    const filtered = existingEmployees.filter(emp => {
+      const fullName = `${emp.nombres} ${emp.apellidos}`.toLowerCase();
+      const document = emp.nroDocumento.toLowerCase();
+      const searchLower = term.toLowerCase();
+      
+      return fullName.includes(searchLower) || 
+             document.includes(searchLower) ||
+             emp.nombres.toLowerCase().includes(searchLower) ||
+             emp.apellidos.toLowerCase().includes(searchLower);
+    }).slice(0, 10); // Limitar a 10 resultados
+
+    setFilteredEmployees(filtered);
+  };
+
+  // Manejar cambios en el campo de búsqueda
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+    setShowSuggestions(true);
+    filterEmployees(value);
+    
+    // Si se borra el campo, limpiar la selección
+    if (!value) {
+      setSelectedEmployee(null);
+      resetForm();
+    }
+  };
+
+  // Seleccionar un empleado de las sugerencias
+  const selectEmployee = (selectedEmp) => {
+    setSelectedEmployee(selectedEmp);
+    setSearchTerm(`${selectedEmp.nombres} ${selectedEmp.apellidos} - ${selectedEmp.nroDocumento}`);
+    setShowSuggestions(false);
+    
+    // Llenar el formulario con los datos del empleado seleccionado
+    setFormData({
+      nombres: selectedEmp.nombres || '',
+      apellidos: selectedEmp.apellidos || '',
+      nroDocumento: selectedEmp.nroDocumento || '',
+      fechaNacimiento: selectedEmp.fechaNacimiento ? selectedEmp.fechaNacimiento.split('T')[0] : '',
+      direccion: selectedEmp.direccion || '',
+      telefono: selectedEmp.telefono || '',
+      puesto: selectedEmp.puesto || '',
+      fechaIngreso: selectedEmp.fechaIngreso ? selectedEmp.fechaIngreso.split('T')[0] : '',
+      estado: selectedEmp.estado || 'ACTIVO',
+      userId: selectedEmp.userId || null,
+      uniqueId: selectedEmp.uniqueId || null
+    });
+  };
+
+  // Resetear formulario
+  const resetForm = () => {
+    setFormData({
+      nombres: '',
+      apellidos: '',
+      nroDocumento: '',
+      fechaNacimiento: '',
+      direccion: '',
+      telefono: '',
+      puesto: '',
+      fechaIngreso: '',
+      estado: 'ACTIVO',
+      userId: null,
+      uniqueId: null
+    });
+  };
+
+  // Cerrar sugerencias al hacer clic fuera
+  const handleClickOutside = () => {
+    setTimeout(() => setShowSuggestions(false), 200);
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -66,7 +151,7 @@ const EmployeeForm = ({ employee, onSubmit, onCancel }) => {
         [name]: ''
       }));
     }
-    
+
     // Limpiar error general también
     if (errors.general) {
       setErrors(prev => ({
@@ -137,7 +222,7 @@ const EmployeeForm = ({ employee, onSubmit, onCancel }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
@@ -148,13 +233,13 @@ const EmployeeForm = ({ employee, onSubmit, onCancel }) => {
     } catch (error) {
       console.error('Error capturado en formulario:', error);
       console.error('Mensaje del error:', error.message);
-      
+
       // Limpiar errores previos
       setErrors({});
-      
+
       // Manejar errores específicos
       const errorMessage = error.message || '';
-      
+
       if (errorMessage === 'DUPLICATE_DOCUMENT') {
         setErrors({
           nroDocumento: 'Este número de documento ya está registrado en el sistema'
@@ -168,14 +253,14 @@ const EmployeeForm = ({ employee, onSubmit, onCancel }) => {
           general: 'Ya existe un empleado con estos datos en el sistema'
         });
       } else if (errorMessage.includes('empleados_nro_documento_unique') ||
-                 errorMessage.includes('nro_documento_unique') ||
-                 (errorMessage.includes('Duplicate entry') && errorMessage.includes('nro_documento'))) {
+        errorMessage.includes('nro_documento_unique') ||
+        (errorMessage.includes('Duplicate entry') && errorMessage.includes('nro_documento'))) {
         setErrors({
           nroDocumento: 'Este número de documento ya está registrado en el sistema'
         });
       } else if (errorMessage.includes('empleados_nombres_unique') ||
-                 errorMessage.includes('nombres_unique') ||
-                 (errorMessage.includes('Duplicate entry') && errorMessage.includes('nombres'))) {
+        errorMessage.includes('nombres_unique') ||
+        (errorMessage.includes('Duplicate entry') && errorMessage.includes('nombres'))) {
         setErrors({
           nombres: 'Ya existe un empleado con este nombre en el sistema'
         });
@@ -227,18 +312,127 @@ const EmployeeForm = ({ employee, onSubmit, onCancel }) => {
                 <h4 className="card-title">
                   {employee ? 'Editar Empleado' : 'Crear Nuevo Empleado'}
                 </h4>
-                <button
-                  type="button"
-                  className="btn btn-secondary btn-round ml-auto mr-2"
-                  onClick={onCancel}
-                >
-                  <i className="fas fa-arrow-left mr-2"></i>
-                  Volver
-                </button>
               </div>
             </div>
 
             <div className="card-body">
+              {/* Campo de búsqueda - SOLO para nuevo empleado */}
+              {!employee && (
+                <div className="row mb-4">
+                  <div className="col-md-12">
+                    <div className="form-group">
+                      <label htmlFor="employeeSearch">
+                        <i className="fas fa-search mr-2"></i>
+                        Buscar Empleado Existente (Opcional)
+                      </label>
+                      <div className="position-relative">
+                        <input
+                          type="text"
+                          className="form-control"
+                          id="employeeSearch"
+                          value={searchTerm}
+                          onChange={handleSearchChange}
+                          onBlur={handleClickOutside}
+                          placeholder="Buscar por nombre, apellido o número de documento..."
+                        />
+                        
+                        {/* Lista de sugerencias */}
+                        {showSuggestions && filteredEmployees.length > 0 && (
+                          <div className="position-absolute w-100" style={{ 
+                            top: '100%', 
+                            zIndex: 1000,
+                            maxHeight: '200px',
+                            overflowY: 'auto',
+                            backgroundColor: '#fff',
+                            border: '1px solid #dee2e6',
+                            borderTop: 'none',
+                            borderRadius: '0 0 0.25rem 0.25rem',
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                          }}>
+                            {filteredEmployees.map((emp) => (
+                              <div
+                                key={emp.id}
+                                className="p-2 border-bottom"
+                                style={{ 
+                                  cursor: 'pointer',
+                                  transition: 'background-color 0.2s'
+                                }}
+                                onMouseDown={() => selectEmployee(emp)}
+                                onMouseEnter={(e) => {
+                                  e.target.style.backgroundColor = '#f8f9fa';
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.target.style.backgroundColor = 'transparent';
+                                }}
+                              >
+                                <div className="d-flex justify-content-between">
+                                  <div>
+                                    <strong>{emp.nombres} {emp.apellidos}</strong>
+                                    <br />
+                                    <small className="text-muted">
+                                      Doc: {emp.nroDocumento} | Puesto: {emp.puesto}
+                                    </small>
+                                  </div>
+                                  <div className="text-right">
+                                    <small className={`badge ${emp.estado === 'ACTIVO' ? 'badge-success' : 'badge-secondary'}`}>
+                                      {emp.estado}
+                                    </small>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        
+                        {/* Mensaje cuando no hay resultados */}
+                        {showSuggestions && searchTerm.length >= 2 && filteredEmployees.length === 0 && (
+                          <div className="position-absolute w-100" style={{ 
+                            top: '100%', 
+                            zIndex: 1000,
+                            backgroundColor: '#fff',
+                            border: '1px solid #dee2e6',
+                            borderTop: 'none',
+                            borderRadius: '0 0 0.25rem 0.25rem',
+                            padding: '1rem',
+                            textAlign: 'center',
+                            color: '#6c757d'
+                          }}>
+                            <i className="fas fa-search mr-2"></i>
+                            No se encontraron empleados con ese criterio
+                          </div>
+                        )}
+                      </div>
+                      
+                      <small className="form-text text-muted">
+                        Escriba al menos 2 caracteres para buscar empleados existentes
+                      </small>
+                      
+                      {/* Botón para limpiar búsqueda */}
+                      {selectedEmployee && (
+                        <div className="mt-2">
+                          <div className="alert alert-info">
+                            <i className="fas fa-user mr-2"></i>
+                            <strong>Empleado seleccionado:</strong> {selectedEmployee.nombres} {selectedEmployee.apellidos}
+                            <button
+                              type="button"
+                              className="btn btn-sm btn-outline-secondary ml-2"
+                              onClick={() => {
+                                setSelectedEmployee(null);
+                                setSearchTerm('');
+                                resetForm();
+                              }}
+                            >
+                              <i className="fas fa-times mr-1"></i>
+                              Limpiar
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <form onSubmit={handleSubmit}>
                 <div className="row">
                   {/* Error general */}
@@ -354,7 +548,7 @@ const EmployeeForm = ({ employee, onSubmit, onCancel }) => {
                         name="direccion"
                         value={formData.direccion}
                         onChange={handleChange}
-                        placeholder="Ingrese la dirección completa"
+                        placeholder="Ingrese la dirección"
                         rows="2"
                       />
                       {errors.direccion && (
@@ -468,7 +662,7 @@ const EmployeeForm = ({ employee, onSubmit, onCancel }) => {
                     </button>
                     <button
                       type="submit"
-                      className="btn btn-primary"
+                      className="btn btn-success"
                       disabled={loading}
                     >
                       {loading ? (

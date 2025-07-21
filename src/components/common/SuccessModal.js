@@ -1,28 +1,26 @@
 import React, { useEffect, useState } from 'react';
 
-const SuccessModal = ({ 
-  isVisible, 
-  message, 
-  title = "¡Éxito!",
-  duration = 500, 
-  onClose 
+const SuccessModal = ({
+  isVisible,
+  message,
+  title = "Good job!",
+  duration = 2000,
+  onClose
 }) => {
   const [isAnimating, setIsAnimating] = useState(false);
 
   useEffect(() => {
     if (isVisible) {
-      // Animación de entrada
       setIsAnimating(true);
-      
+
       if (duration > 0) {
         const timer = setTimeout(() => {
-          // Animación de salida
           setIsAnimating(false);
           setTimeout(() => {
             onClose();
-          }, 300); // Tiempo para animación de salida
+          }, 300);
         }, duration);
-        
+
         return () => clearTimeout(timer);
       }
     }
@@ -32,157 +30,154 @@ const SuccessModal = ({
 
   return (
     <>
-      {/* CSS para animaciones */}
       <style>
         {`
           @keyframes shrink {
             from { width: 100%; }
             to { width: 0%; }
           }
-          
           @keyframes checkPulse {
-            0% {
-              transform: scale(0);
-              opacity: 0;
-            }
-            50% {
-              transform: scale(1.1);
-            }
-            100% {
-              transform: scale(1);
-              opacity: 1;
-            }
+            0% { transform: scale(0); opacity: 0; }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
           }
-          
-          @keyframes slideInUp {
-            from {
-              transform: translateY(50px) scale(0.8);
-              opacity: 0;
-            }
-            to {
-              transform: translateY(0) scale(1);
-              opacity: 1;
-            }
+          @keyframes checkDraw {
+            to { stroke-dashoffset: 0; }
           }
-          
-          @keyframes slideOutDown {
-            from {
-              transform: translateY(0) scale(1);
-              opacity: 1;
-            }
-            to {
-              transform: translateY(-50px) scale(0.8);
-              opacity: 0;
-            }
-          }
-          
           .animate-in {
-            animation: slideInUp 0.4s ease-out;
+            animation: fadeInScale 0.4s cubic-bezier(.36,1.01,.32,1) both;
           }
-          
           .animate-out {
-            animation: slideOutDown 0.3s ease-in;
+            animation: fadeOutScale 0.3s cubic-bezier(.36,1.01,.32,1) both;
+          }
+          @keyframes fadeInScale {
+            from { opacity: 0; transform: scale(0.85);}
+            to { opacity: 1; transform: scale(1);}
+          }
+          @keyframes fadeOutScale {
+            from { opacity: 1; transform: scale(1);}
+            to { opacity: 0; transform: scale(0.85);}
           }
         `}
       </style>
 
-      {/* Overlay de fondo */}
-      <div 
+      {/* Overlay */}
+      <div
         className="modal-backdrop show"
         style={{
-          backgroundColor: 'rgba(0, 0, 0, 0.4)',
+          backgroundColor: 'rgba(0,0,0,0.4)',
           zIndex: 1050
         }}
       />
-      
-      {/* Modal centrado */}
-      <div 
+
+      {/* Modal */}
+      <div
         className="modal show d-flex align-items-center justify-content-center"
-        style={{ 
+        style={{
           display: 'flex',
           zIndex: 1055
         }}
       >
-        <div 
+        <div
           className={`modal-dialog modal-dialog-centered ${isAnimating ? 'animate-in' : 'animate-out'}`}
           style={{
-            maxWidth: '400px',
+            maxWidth: '420px',
             margin: '0'
           }}
         >
-          <div 
+          <div
             className="modal-content border-0 shadow-lg"
             style={{
-              borderRadius: '15px',
+              borderRadius: '10px',
               overflow: 'hidden',
-              backgroundColor: '#ffffff'
+              backgroundColor: '#fff',
+              padding: '0'
             }}
           >
-            <div 
-              className="modal-body text-center py-5 px-4"
+            <div
+              className="modal-body text-center px-4 py-5"
               style={{
-                background: 'linear-gradient(135deg, #28a745 0%, #20c997 100%)'
+                background: '#fff',
+                borderRadius: '10px'
               }}
             >
-              {/* Icono de check grande */}
-              <div 
+              {/* Check animado */}
+              <div
                 className="mb-4 d-flex align-items-center justify-content-center"
                 style={{
-                  width: '80px',
-                  height: '80px',
-                  backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                  width: '90px',
+                  height: '90px',
+                  backgroundColor: '#f0fdf4',
                   borderRadius: '50%',
                   margin: '0 auto',
+                  boxShadow: '0 0 0 4px #e6f9ec',
                   animation: isAnimating ? 'checkPulse 0.6s ease-out' : 'none'
                 }}
               >
-                <i 
-                  className="fas fa-check"
-                  style={{
-                    fontSize: '40px',
-                    color: 'white'
-                  }}
-                ></i>
+                <svg width="60" height="60" viewBox="0 0 60 60">
+                  <circle
+                    cx="30"
+                    cy="30"
+                    r="28"
+                    fill="none"
+                    stroke="#38d996"
+                    strokeWidth="4"
+                    opacity="0.18"
+                  />
+                  <polyline
+                    points="18,32 27,41 42,23"
+                    fill="none"
+                    stroke="#38d996"
+                    strokeWidth="4"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    style={{
+                      strokeDasharray: 40,
+                      strokeDashoffset: 40,
+                      animation: 'checkDraw 0.5s 0.1s forwards'
+                    }}
+                  />
+                </svg>
               </div>
-              
+
               {/* Título */}
-              <h4 
-                className="modal-title mb-3"
+              <h4
+                className="modal-title mb-2"
                 style={{
-                  color: 'white',
+                  color: '#444',
                   fontWeight: 'bold',
-                  fontSize: '24px'
+                  fontSize: '26px'
                 }}
               >
                 {title}
               </h4>
-              
+
               {/* Mensaje */}
-              <p 
+              <p
                 className="mb-0"
                 style={{
-                  color: 'rgba(255, 255, 255, 0.9)',
-                  fontSize: '16px',
+                  color: '#888',
+                  fontSize: '17px',
                   lineHeight: '1.5'
                 }}
               >
                 {message}
               </p>
-              
-              {/* Barra de progreso para mostrar tiempo restante */}
+
+              {/* Barra de progreso */}
               {duration > 0 && (
-                <div 
+                <div
                   className="progress mt-4"
-                  style={{ 
-                    height: '3px', 
-                    backgroundColor: 'rgba(255,255,255,0.2)',
+                  style={{
+                    height: '3px',
+                    backgroundColor: '#e6f9ec',
                     borderRadius: '2px'
                   }}
                 >
-                  <div 
+                  <div
                     className="progress-bar"
                     style={{
-                      backgroundColor: 'white',
+                      backgroundColor: '#38d996',
                       animation: `shrink ${duration}ms linear forwards`,
                       borderRadius: '2px'
                     }}
